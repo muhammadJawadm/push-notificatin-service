@@ -1,6 +1,36 @@
 import admin from "firebase-admin";
 
 const FIREBASE_MULTICAST_BATCH_SIZE = 500;
+const DEFAULT_ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "https://food-delivery-app-admin-rust.vercel.app",
+];
+
+function getAllowedOrigins() {
+  const fromEnv = process.env.ALLOWED_ORIGINS;
+
+  if (!fromEnv) {
+    return DEFAULT_ALLOWED_ORIGINS;
+  }
+
+  return fromEnv
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+function applyCors(req, res) {
+  const requestOrigin = req.headers.origin;
+  const allowedOrigins = getAllowedOrigins();
+
+  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+    res.setHeader("Access-Control-Allow-Origin", requestOrigin);
+    res.setHeader("Vary", "Origin");
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+}
 
 function getServiceAccountFromEnv() {
   const projectId = process.env.FIREBASE_PROJECT_ID || process.env.project_id;
@@ -94,6 +124,12 @@ async function sendBulkNotifications(messaging, tokens, notification) {
 }
 
 export default async function handler(req, res) {
+  applyCors(req, res);
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
   // Only POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
