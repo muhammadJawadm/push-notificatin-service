@@ -1,11 +1,18 @@
 import admin from "firebase-admin";
 
 const FIREBASE_MULTICAST_BATCH_SIZE = 500;
-const DEFAULT_ALLOWED_ORIGINS = [
-  "http://localhost:5173",
-  "https://food-delivery-app-admin-rust.vercel.app",
-];
+const LOCAL_ORIGINS = ["http://localhost:5173"];
 
+// Load from .env
+const ENV_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
+  : [];
+
+// Final allowed origins
+export const DEFAULT_ALLOWED_ORIGINS = [
+  ...LOCAL_ORIGINS,
+  ...ENV_ORIGINS,
+];
 function getAllowedOrigins() {
   const fromEnv = process.env.ALLOWED_ORIGINS;
 
