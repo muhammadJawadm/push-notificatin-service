@@ -30,10 +30,8 @@ function applyCors(req, res) {
   const requestOrigin = req.headers.origin;
   const allowedOrigins = getAllowedOrigins();
 
-  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
-    res.setHeader("Access-Control-Allow-Origin", requestOrigin);
-    res.setHeader("Vary", "Origin");
-  }
+  res.setHeader("Access-Control-Allow-Origin", requestOrigin || "*");
+  res.setHeader("Vary", "Origin");
 
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
